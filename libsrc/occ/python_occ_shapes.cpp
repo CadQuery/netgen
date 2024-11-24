@@ -76,6 +76,7 @@
 #include <gp_Ax2d.hxx>
 #include <gp_Pln.hxx>
 #include <gp_Trsf.hxx>
+#include <BRepBuilderAPI_Copy.hxx>
 
 #pragma clang diagnostic pop
 
@@ -700,8 +701,22 @@ DLL_HEADER void ExportNgOCCShapes(py::module &m)
          })
 
     .def_static("FromAddress", []( const uintptr_t addr ){
-        return CastShape(*reinterpret_cast<TopoDS_Shape*>(addr));}
+            return CastShape(*reinterpret_cast<TopoDS_Shape*>(addr));
+        },
+        py::arg("address"),
+        "Wrap a TopoDS_Shape instance from an address."
     )
+
+    .def_static("CopyFromAddress", []( const uintptr_t addr ){
+            auto sh = BRepBuilderAPI_Copy(
+                *reinterpret_cast<TopoDS_Shape*>(addr), true, false
+                ).Shape();
+            return CastShape(sh);
+        },
+        py::arg("address"),
+        "Copy and wrap a TopoDS_Shape instance from an address."
+    )
+
 
     .def("ShapeType", [] (const TopoDS_Shape & shape)
          {
